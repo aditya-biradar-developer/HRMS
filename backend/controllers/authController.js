@@ -31,7 +31,9 @@ const logAudit = async (data) => {
 // Register user (Enhanced with email verification)
 const register = async (req, res) => {
   try {
-    console.log('Registration request received:', req.body);
+    const startTime = Date.now();
+    console.log('⏱️ Registration started at:', new Date().toISOString());
+    console.log('📝 Registration request received:', req.body);
     
     const { name, email, password, department } = req.body;
     
@@ -52,12 +54,17 @@ const register = async (req, res) => {
       });
     }
     
+    console.log('⏱️ Initial validation completed:', Date.now() - startTime, 'ms');
+
     // Generate verification token
     const verificationToken = generateRandomToken();
     const verificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
     
+    console.log('⏱️ Token generated:', Date.now() - startTime, 'ms');
+    
     // SECURITY: All new signups are 'candidate' by default
     // Only admins can change roles later
+    console.log('🔄 Creating user in database...');
     const user = await User.create({
       name,
       email,
@@ -69,11 +76,14 @@ const register = async (req, res) => {
       verification_token_expires: verificationExpires
     });
     
-    console.log('User created successfully:', user);
+    console.log('✅ User created successfully:', user);
+    console.log('⏱️ User creation completed:', Date.now() - startTime, 'ms');
     
     // Send verification email if email service is configured
+    console.log('📧 Sending verification email...');
     const verificationLink = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/verify-email?token=${verificationToken}`;
     const emailResult = await emailService.sendVerificationEmail(email, name, verificationLink);
+    console.log('⏱️ Email handling completed:', Date.now() - startTime, 'ms');
     
     // If email service is not configured, auto-verify the user
     if (!emailResult.success && process.env.NODE_ENV !== 'production') {
@@ -89,9 +99,12 @@ const register = async (req, res) => {
     }
     
     // Create notifications for admins and HR about new user
+    console.log('🔔 Creating notifications...');
     await NotificationHelper.notifyNewUser(user);
+    console.log('⏱️ Notifications created:', Date.now() - startTime, 'ms');
     
     // Log audit
+    console.log('📝 Logging audit...');
     await logAudit({
       user_id: user.id,
       action: 'USER_REGISTERED',
@@ -101,6 +114,7 @@ const register = async (req, res) => {
       user_agent: req.headers['user-agent'],
       details: { email, role: 'candidate' }
     });
+    console.log('⏱️ Audit logged:', Date.now() - startTime, 'ms');
     
     // Generate token for auto-login in development
     const token = !emailResult.success && process.env.NODE_ENV !== 'production' 

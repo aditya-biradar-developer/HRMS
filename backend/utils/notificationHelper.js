@@ -12,23 +12,39 @@ class NotificationHelper {
    */
   static async notifyNewUser(newUser) {
     try {
-      const allUsers = await User.getAll();
-      const adminAndHRUsers = allUsers.filter(u => ['admin', 'hr'].includes(u.role));
+      // Only get admin and HR users directly from the database
+      const { data: adminAndHRUsers } = await supabase
+        .from('users')
+        .select('id')
+        .in('role', ['admin', 'hr']);
+      
+      if (!adminAndHRUsers || adminAndHRUsers.length === 0) {
+        console.log('ℹ️ No admin/HR users to notify');
+        return;
+      }
       
       const notifications = adminAndHRUsers.map(user => ({
         user_id: user.id,
         category: 'users',
         title: 'New User Registered',
         message: `${newUser.name} (${newUser.role}) has joined the ${newUser.department} department`,
-        is_read: false
+        is_read: false,
+        created_at: new Date()
       }));
       
-      if (notifications.length > 0) {
-        await Notification.createBulk(notifications);
-        console.log(`✅ Created ${notifications.length} notifications for new user`);
+      // Insert all notifications in a single database call
+      const { error } = await supabase
+        .from('notifications')
+        .insert(notifications);
+      
+      if (error) {
+        throw error;
       }
+      
+      console.log(`✅ Created ${notifications.length} notifications for new user`);
     } catch (error) {
       console.error('⚠️ Failed to create user notifications:', error);
+      // Don't throw error - notifications are non-critical
     }
   }
 
