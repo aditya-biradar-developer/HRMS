@@ -71,9 +71,22 @@ const register = async (req, res) => {
     
     console.log('User created successfully:', user);
     
-    // Send verification email
+    // Send verification email if email service is configured
     const verificationLink = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/verify-email?token=${verificationToken}`;
-    await emailService.sendVerificationEmail(email, name, verificationLink);
+    const emailResult = await emailService.sendVerificationEmail(email, name, verificationLink);
+    
+    // If email service is not configured, auto-verify the user
+    if (!emailResult.success && process.env.NODE_ENV !== 'production') {
+      await supabase
+        .from('users')
+        .update({
+          email_verified: true,
+          verification_token: null,
+          verification_token_expires: null
+        })
+        .eq('id', user.id);
+      console.log('⚠️ Email service not configured. Auto-verifying user for development.');
+    }
     
     // Create notifications for admins and HR about new user
     await NotificationHelper.notifyNewUser(user);
@@ -89,12 +102,20 @@ const register = async (req, res) => {
       details: { email, role: 'candidate' }
     });
     
+    // Generate token for auto-login in development
+    const token = !emailResult.success && process.env.NODE_ENV !== 'production' 
+      ? generateToken(user.id) 
+      : null;
+    
     res.status(201).json({
       success: true,
-      message: 'Registration successful! Please check your email to verify your account.',
+      message: emailResult.success 
+        ? 'Registration successful! Please check your email to verify your account.'
+        : 'Registration successful! Email service not configured, proceeding with auto-verification.',
       data: {
         email: user.email,
-        requiresVerification: true
+        requiresVerification: emailResult.success,
+        token: token // Only provided in development when email service is not configured
       }
     });
   } catch (error) {
