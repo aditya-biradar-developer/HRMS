@@ -7,12 +7,14 @@ const getApiUrl = () => {
   
   // 2. Auto-detect production environment
   if (window.location.hostname.includes('onrender.com')) {
-    // Replace 'your-backend-app' with your actual Render backend service name
-    const backendUrl = window.location.hostname.replace(/^[^-]+-/, 'ai-hrms-backend-');
-    return `https://${backendUrl}/api`;
+    return 'https://hrms-backend-c0ca.onrender.com/api';
   }
   
-  // 3. Development fallback
+  // 3. Local development with deployed backend
+  // Uncomment this to use deployed backend even in local development
+  // return 'https://hrms-backend-c0ca.onrender.com/api';
+  
+  // 4. Development fallback
   return 'http://localhost:5000/api';
 };
 
