@@ -32,6 +32,8 @@ services:
     plan: free
     buildCommand: |
       cd frontend
+      export VITE_API_URL=https://hrms-backend-c0ca.onrender.com/api
+      export VITE_AI_SERVICE_URL=https://hrms-ai-service.onrender.com
       npm install
       npm run build
       ls -la dist/
@@ -39,7 +41,9 @@ services:
     envVars:
       - key: NODE_VERSION
         value: 18.x
+      - key: NODE_ENV
+        value: production
       - key: VITE_API_URL
-        value: https://hrms-backend-c0ca.onrender.com
+        value: https://hrms-backend-c0ca.onrender.com/api
       - key: VITE_AI_SERVICE_URL
         value: https://hrms-ai-service.onrender.com

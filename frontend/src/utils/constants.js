@@ -1,25 +1,19 @@
 // API URL configuration for different environments
 const getApiUrl = () => {
-  // 1. Use environment variable if set
-  if (import.meta.env.VITE_API_URL) {
-    return import.meta.env.VITE_API_URL;
+  // Use environment variable if set (production and development)
+  const envApiUrl = import.meta.env.VITE_API_URL;
+  if (envApiUrl) {
+    console.log('🌐 Using API URL from environment:', envApiUrl);
+    return envApiUrl;
   }
   
-  // 2. Auto-detect production environment
-  if (window.location.hostname.includes('onrender.com')) {
-    return 'https://hrms-backend-c0ca.onrender.com/api';
-  }
-  
-  // 3. For local development, you can use the deployed backend
-  // This is helpful when you don't want to run the backend locally
-  if (process.env.NODE_ENV === 'development') {
-    return 'https://hrms-backend-c0ca.onrender.com/api';
-  }
-  
-  // 4. Development fallback - only if you're running backend locally
-  return 'http://localhost:5000/api';
+  // Fallback for local development
+  const fallbackUrl = 'http://localhost:5000/api';
+  console.log('🌐 Using fallback API URL:', fallbackUrl);
+  return fallbackUrl;
 };
 
+// Export the API URL and log it
 export const API_URL = getApiUrl();
 
 // Log the API URL for debugging
