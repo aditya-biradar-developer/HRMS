@@ -30,13 +30,16 @@ services:
     runtime: node
     region: oregon
     plan: free
-    buildCommand: cd frontend && npm install && npm run build
-    startCommand: cd frontend && npm start
+    buildCommand: |
+      cd frontend
+      npm install
+      npm run build
+      ls -la dist/
+    startCommand: cd frontend && NODE_ENV=production npm start
     envVars:
+      - key: NODE_VERSION
+        value: 18.x
       - key: VITE_API_URL
         value: https://hrms-backend-c0ca.onrender.com
       - key: VITE_AI_SERVICE_URL
         value: https://hrms-ai-service.onrender.com
-    envVars:
-      - key: NODE_VERSION
-        value: 18.x
