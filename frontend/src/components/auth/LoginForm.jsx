@@ -6,8 +6,7 @@ import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Loader2, Eye, EyeOff } from 'lucide-react';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+import api from '../../services/api';
 
 const LoginForm = () => {
   const [formData, setFormData] = useState({
@@ -79,7 +78,7 @@ const LoginForm = () => {
 
   const handleResendVerification = async () => {
     try {
-      const response = await axios.post(`${API_URL}/auth/resend-verification`, {
+      const response = await api.post('/auth/resend-verification', {
         email: formData.email
       });
       
