@@ -20,30 +20,27 @@ services:
     envVars:
       - key: NODE_VERSION
         value: 18.x
-      - key: NODE_ENV
-        value: production
-      - key: FRONTEND_URL
-        value: https://hrms-frontend.onrender.com
+      - key: JWT_SECRET
+        value: k6i7QBqIUT36LecOy/nw/tNOpvATbU17tCtiFkDKgLPZofR9JYA1GYERJ7iIzYzP0uaRNjAPgIwQMGeU/Tcvzw==
+      - key: DATABASE_URL
+        value: https://hvfxvxoqlvgksdtpaovj.supabase.co
+      - key: PORT
+        value: 5000
+      - key: CORS_ORIGIN
+        value: https://hrms-frontend-ure6.onrender.com
 
   - type: web
     name: hrms-frontend
     runtime: node
     region: oregon
     plan: free
-    buildCommand: |
-      cd frontend
-      export VITE_API_URL=https://hrms-backend-c0ca.onrender.com/api
-      export VITE_AI_SERVICE_URL=https://hrms-ai-service.onrender.com
-      npm install
-      npm run build
-      ls -la dist/
-    startCommand: cd frontend && NODE_ENV=production npm start
+    buildCommand: cd frontend && npm install && npm run build
+    startCommand: cd frontend && npm start
+    envVars:
+      - key: VITE_API_URL
+        value: https://hrms-backend-ce4a.onrender.com
+      - key: VITE_AI_SERVICE_URL
+        value: https://hrms-ai-service.onrender.com
     envVars:
       - key: NODE_VERSION
         value: 18.x
-      - key: NODE_ENV
-        value: production
-      - key: VITE_API_URL
-        value: https://hrms-backend-c0ca.onrender.com/api
-      - key: VITE_AI_SERVICE_URL
-        value: https://hrms-ai-service.onrender.com
