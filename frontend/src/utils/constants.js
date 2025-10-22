@@ -10,11 +10,13 @@ const getApiUrl = () => {
     return 'https://hrms-backend-c0ca.onrender.com/api';
   }
   
-  // 3. Local development with deployed backend
-  // Uncomment this to use deployed backend even in local development
-  // return 'https://hrms-backend-c0ca.onrender.com/api';
+  // 3. For local development, you can use the deployed backend
+  // This is helpful when you don't want to run the backend locally
+  if (process.env.NODE_ENV === 'development') {
+    return 'https://hrms-backend-c0ca.onrender.com/api';
+  }
   
-  // 4. Development fallback
+  // 4. Development fallback - only if you're running backend locally
   return 'http://localhost:5000/api';
 };
 

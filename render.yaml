@@ -20,6 +20,10 @@ services:
     envVars:
       - key: NODE_VERSION
         value: 18.x
+      - key: NODE_ENV
+        value: production
+      - key: FRONTEND_URL
+        value: https://hrms-frontend.onrender.com
 
   - type: web
     name: hrms-frontend
