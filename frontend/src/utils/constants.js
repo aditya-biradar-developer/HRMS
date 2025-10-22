@@ -1,4 +1,25 @@
-export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+// API URL configuration for different environments
+const getApiUrl = () => {
+  // 1. Use environment variable if set
+  if (import.meta.env.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL;
+  }
+  
+  // 2. Auto-detect production environment
+  if (window.location.hostname.includes('onrender.com')) {
+    // Replace 'your-backend-app' with your actual Render backend service name
+    const backendUrl = window.location.hostname.replace(/^[^-]+-/, 'ai-hrms-backend-');
+    return `https://${backendUrl}/api`;
+  }
+  
+  // 3. Development fallback
+  return 'http://localhost:5000/api';
+};
+
+export const API_URL = getApiUrl();
+
+// Log the API URL for debugging
+console.log('🌐 API URL:', API_URL);
 
 export const ROLES = {
   ADMIN: 'admin',

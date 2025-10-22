@@ -28,17 +28,75 @@ const emailRoutes = require('./routes/emailRoutes');
 
 const app = express();
 
+// Environment validation
+console.log('🔍 Environment Check:');
+console.log('- NODE_ENV:', process.env.NODE_ENV || 'development');
+console.log('- PORT:', process.env.PORT || 5000);
+console.log('- SUPABASE_URL:', process.env.SUPABASE_URL ? '✅ Set' : '❌ Missing');
+console.log('- SUPABASE_SERVICE_KEY:', process.env.SUPABASE_SERVICE_KEY ? '✅ Set' : '❌ Missing');
+console.log('- JWT_SECRET:', process.env.JWT_SECRET ? '✅ Set' : '❌ Missing');
+console.log('- FRONTEND_URL:', process.env.FRONTEND_URL || 'Not set (using defaults)');
+
 // Test database connection on startup
 testConnection().then(connected => {
   if (!connected) {
     console.error('❌ Failed to connect to database. Please check your configuration.');
+    console.error('🔧 Make sure these environment variables are set:');
+    console.error('   - SUPABASE_URL');
+    console.error('   - SUPABASE_SERVICE_KEY');
+    
+    // Don't exit in production, just log the error
+    if (process.env.NODE_ENV === 'production') {
+      console.error('⚠️  Continuing in production mode despite database connection issues');
+    } else {
+      process.exit(1);
+    }
+  }
+}).catch(error => {
+  console.error('❌ Database connection test failed:', error);
+  if (process.env.NODE_ENV !== 'production') {
     process.exit(1);
   }
 });
 
 // CORS configuration - MUST be before other middleware
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://localhost:5173',
+  'http://localhost:5000',
+  // Add your Render frontend URL here
+  process.env.FRONTEND_URL,
+  // Allow any .onrender.com domain for deployment
+  /https:\/\/.*\.onrender\.com$/,
+  // Allow any localhost for development
+  /http:\/\/localhost:\d+$/
+].filter(Boolean);
+
+console.log('🌐 Allowed CORS origins:', allowedOrigins);
+
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:5173'], // Allow both ports
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    // Check if origin is in allowed list
+    const isAllowed = allowedOrigins.some(allowedOrigin => {
+      if (typeof allowedOrigin === 'string') {
+        return origin === allowedOrigin;
+      } else if (allowedOrigin instanceof RegExp) {
+        return allowedOrigin.test(origin);
+      }
+      return false;
+    });
+    
+    if (isAllowed) {
+      console.log('✅ CORS allowed for origin:', origin);
+      callback(null, true);
+    } else {
+      console.log('❌ CORS blocked for origin:', origin);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
@@ -91,15 +149,31 @@ app.get('/api/health', async (req, res) => {
     const dbConnected = await testConnection();
     res.status(200).json({
       success: true,
-      message: 'Server is running',
+      message: 'AI-HRMS Backend is running',
       database: dbConnected ? 'connected' : 'disconnected',
-      timestamp: new Date().toISOString()
+      environment: {
+        nodeEnv: process.env.NODE_ENV || 'development',
+        port: process.env.PORT || 5000,
+        hasSupabaseUrl: !!process.env.SUPABASE_URL,
+        hasSupabaseKey: !!process.env.SUPABASE_SERVICE_KEY,
+        hasJwtSecret: !!process.env.JWT_SECRET,
+        frontendUrl: process.env.FRONTEND_URL || 'not set'
+      },
+      cors: {
+        origin: req.headers.origin || 'no origin header',
+        allowedOrigins: allowedOrigins.map(origin => 
+          typeof origin === 'string' ? origin : origin.toString()
+        )
+      },
+      timestamp: new Date().toISOString(),
+      version: '1.0.0'
     });
   } catch (error) {
     res.status(500).json({
       success: false,
       message: 'Server error',
-      error: error.message
+      error: error.message,
+      timestamp: new Date().toISOString()
     });
   }
 });
