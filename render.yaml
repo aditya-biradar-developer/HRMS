@@ -1,0 +1,62 @@
+services:
+  # Frontend - Static Site
+  - type: static_site
+    name: ai-hrms-frontend
+    env: static
+    buildCommand: cd frontend && npm install && npm run build
+    staticPublishPath: frontend/dist
+    routes:
+      - path: /*
+        destination: /index.html
+
+  # Backend - Web Service
+  - type: web_service
+    name: ai-hrms-backend
+    env: node
+    plan: free
+    buildCommand: cd backend && npm install
+    startCommand: cd backend && npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 5000
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_KEY
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: GOOGLE_API_KEY
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: EMAIL_USER
+        sync: false
+      - key: EMAIL_PASSWORD
+        sync: false
+      - key: SMTP_HOST
+        value: smtp.gmail.com
+      - key: SMTP_PORT
+        value: 587
+
+  # AI Service - Web Service
+  - type: web_service
+    name: ai-hrms-ai-service
+    env: python
+    plan: free
+    buildCommand: cd ai-service && pip install -r requirements.txt
+    startCommand: cd ai-service && gunicorn --bind 0.0.0.0:5001 app:app
+    envVars:
+      - key: PORT
+        value: 5001
+      - key: FLASK_ENV
+        value: production
+      - key: GOOGLE_API_KEY
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+      - key: BACKEND_URL
+        sync: false

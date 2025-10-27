@@ -1,0 +1,17 @@
+{
+  "buildCommand": "npm install",
+  "startCommand": "npm start",
+  "env": "node",
+  "plan": "free",
+  "headers": [
+    {
+      "path": "/api/*",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        }
+      ]
+    }
+  ]
+}
