@@ -6,7 +6,6 @@ gunicorn==21.2.0
 
 # Database
 supabase==2.4.0
-supabase-py>=2.0.0
 
 # Document Processing
 PyPDF2==3.0.1
