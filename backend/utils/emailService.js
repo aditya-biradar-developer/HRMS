@@ -166,6 +166,10 @@ class EmailService {
       }
     } catch (error) {
       console.error('❌ Error sending verification email:', error.message);
+      if (error.response) {
+        console.error('Response data:', error.response.data);
+        console.error('Response status:', error.response.status);
+      }
       return { success: false, error: error.message };
     }
   }
