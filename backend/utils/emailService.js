@@ -3,14 +3,22 @@ const axios = require('axios');
 
 /**
  * Email Service for sending verification codes and notifications
- * Uses SendGrid API for better reliability on Render
+ * Uses Resend API for better reliability on Render
  */
 
 class EmailService {
   constructor() {
-    // Check if SendGrid API key is configured (preferred)
+    // Check if Resend API key is configured (preferred)
+    this.resendApiKey = process.env.RESEND_API_KEY;
     this.sendgridApiKey = process.env.SENDGRID_API_KEY;
-    this.emailUser = process.env.EMAIL_USER;
+    this.emailUser = process.env.EMAIL_USER || 'noreply@ai-hrms.com';
+    
+    if (this.resendApiKey) {
+      this.isConfigured = true;
+      this.useResend = true;
+      console.log('✅ Email service initialized with Resend API');
+      return;
+    }
     
     if (this.sendgridApiKey) {
       this.isConfigured = true;
@@ -99,7 +107,23 @@ class EmailService {
     `;
 
     try {
-      if (this.useSendGrid) {
+      if (this.useResend) {
+        // Use Resend API (preferred)
+        const response = await axios.post('https://api.resend.com/emails', {
+          from: `AI-HRMS <${this.emailUser}>`,
+          to: [email],
+          subject: 'Verify Your Email Address - AI-HRMS',
+          html: htmlContent
+        }, {
+          headers: {
+            'Authorization': `Bearer ${this.resendApiKey}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        console.log(`✅ Verification email sent to ${email} via Resend`);
+        return { success: true };
+      } else if (this.useSendGrid) {
         // Use SendGrid API
         const response = await axios.post('https://api.sendgrid.com/v3/mail/send', {
           personalizations: [{
@@ -211,7 +235,23 @@ class EmailService {
     `;
 
     try {
-      if (this.useSendGrid) {
+      if (this.useResend) {
+        // Use Resend API (preferred)
+        await axios.post('https://api.resend.com/emails', {
+          from: `AI-HRMS <${this.emailUser}>`,
+          to: [email],
+          subject: 'Password Reset Verification Code',
+          html: htmlContent
+        }, {
+          headers: {
+            'Authorization': `Bearer ${this.resendApiKey}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        console.log(`✅ Password reset email sent to ${email} via Resend`);
+        return { success: true };
+      } else if (this.useSendGrid) {
         // Use SendGrid API
         await axios.post('https://api.sendgrid.com/v3/mail/send', {
           personalizations: [{
