@@ -110,8 +110,8 @@ class EmailService {
       if (this.useResend) {
         // Use Resend API (preferred)
         const response = await axios.post('https://api.resend.com/emails', {
-          from: `AI-HRMS <${this.emailUser}>`,
-          to: [email],
+          from: this.emailUser,
+          to: email,
           subject: 'Verify Your Email Address - AI-HRMS',
           html: htmlContent
         }, {
@@ -238,8 +238,8 @@ class EmailService {
       if (this.useResend) {
         // Use Resend API (preferred)
         await axios.post('https://api.resend.com/emails', {
-          from: `AI-HRMS <${this.emailUser}>`,
-          to: [email],
+          from: this.emailUser,
+          to: email,
           subject: 'Password Reset Verification Code',
           html: htmlContent
         }, {
