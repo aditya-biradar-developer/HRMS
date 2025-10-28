@@ -73,7 +73,12 @@ const register = async (req, res) => {
     
     // Send verification email
     const verificationLink = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/verify-email?token=${verificationToken}`;
-    await emailService.sendVerificationEmail(email, name, verificationLink);
+    const emailResult = await emailService.sendVerificationEmail(email, name, verificationLink);
+    
+    if (!emailResult.success) {
+      console.warn('⚠️ Email sending failed:', emailResult.error);
+      // Continue anyway - user can resend later
+    }
     
     // Create notifications for admins and HR about new user
     await NotificationHelper.notifyNewUser(user);
@@ -591,7 +596,15 @@ const resendVerification = async (req, res) => {
     
     // Send verification email
     const verificationLink = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/verify-email?token=${verificationToken}`;
-    await emailService.sendVerificationEmail(email, user.name, verificationLink);
+    const emailResult = await emailService.sendVerificationEmail(email, user.name, verificationLink);
+    
+    if (!emailResult.success) {
+      console.warn('⚠️ Email sending failed:', emailResult.error);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to send verification email. Please check your email configuration and try again.'
+      });
+    }
     
     res.status(200).json({
       success: true,
